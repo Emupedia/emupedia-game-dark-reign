@@ -3,18 +3,18 @@ var PUNKT_SOUNDS = 6;
 function GameShell()
 {
 	var self = this, scroll = new ScrollWidget();
-	
+
 	this.curr_srcreen = '';
 	this.prev_screen = '';
-	
+
 	this.resources = new ResourseLoader();
 	this.fontNormal = null;
 	this.fontRed = null;
 	this.fontGame = null;
-	
+
 	this.levels = {};
 	this.current_level = 1;
-	
+
 	this.init = function()
 	{
 		if (!BrowserCheck.check())
@@ -22,7 +22,7 @@ function GameShell()
 			BrowserCheck.standartMessage();
 			return;
 		}
-		
+
 		this.resources.addImage('css1', 'images/shell/level_select.png');
 		this.resources.addImage('css2', 'images/shell/archive.png');
 		this.resources.addImage('css3', 'images/shell/objective.png');
@@ -31,16 +31,16 @@ function GameShell()
 		this.resources.addImage('css6', 'images/shell/launch-btn.png');
 		this.resources.addImage('css7', 'images/shell/arrows.png');
 		this.resources.addImage('css8', 'images/shell/scroll.png');
-		
+
 		this.resources.addImage('font-normal', 'images/shell/font-normal.png');
 		this.resources.addImage('font-red', 'images/shell/font-red.png');
 		this.resources.addImage('font-white', 'images/shell/font-white.png');
 		this.resources.addImage('font-game', 'images/font.png');
-		
+
 		this.resources.addSound('bridge_sound', 'sounds/shell/bridge.' + AUDIO_TYPE);
 		for (var i = 1; i <= PUNKT_SOUNDS; ++i)
 			this.resources.addSound('punct_sound' + i, 'sounds/shell/punct_' + i + '.' + AUDIO_TYPE);
-		
+
 		if (GAMECONFIG.playVideo)
 		{
 			this.resources.addVideo('cube_in', 'videos/cube_in.webm', 'menu_video');
@@ -53,20 +53,20 @@ function GameShell()
 			this.resources.addVideo('brief_imp', 'videos/brief_imp.webm');
 		}
 		this.resources.addVideo('ring0', 'videos/m_ring00.webm', 'ring');
-		
-		
+
+
 		this.resources.onLoaded = function(loaded, total){
 			var progress = parseInt(500/total*loaded);
 			$('#progress-bar').css({width: progress+'px'});
 		};
-		
+
 		this.resources.onComplete = function(){
 			$('.load-screen').hide();
-			
+
 			self.fontNormal = new FontDraw('font-normal', 18);
 			self.fontRed = new FontDraw('font-red', 20);
 			self.fontGame = new FontDraw('font-game', 14);
-			
+
 			$('#link_archive_text, #link_archive2_text').css('background-image', self.makeLinkImage('ARCHIVE'));
 			$('#link_back_text, #link_lan_back_text').css('background-image', self.makeLinkImage('BACK'));
 			$('#link_mession_text').css('background-image', self.makeLinkImage('MISSION'));
@@ -74,35 +74,35 @@ function GameShell()
 			$('#link_fg_text').css('background-image', self.makeLinkImage('FREEDOM GUARD'));
 			$('#link_imp_text').css('background-image', self.makeLinkImage('IMPERIUM'));
 			$('#link_launch_text').css('background-image', self.makeLinkImage('LAUNCH'));
-			
+
 			self.getLevelInfo(function(info){
 				$('#level_name').css('background-image', 'url("' + self.fontRed.getDataUrl(info.name) + '")');
 			});
 			$('#archive_up').css('background-image', 'url("' + self.fontGame.getDataUrl('UP ONE LEVEL') + '")');
-			
+
 			ShellArchive.init();
-			
+
 			self.videoIntro();
 		};
 	};
-	
+
 	this.playPunktSound = function()
 	{
 		var i = Math.ceil(Math.random() * PUNKT_SOUNDS);
 		self.resources.play('punct_sound'+i);
 	};
-	
+
 	this.navigate = function(nav_to, animation, params)
 	{
 		if (nav_to == 'back')
 			nav_to = self.prev_screen;
-		
+
 		if (self.curr_srcreen != '')
 			$('#' + self.curr_srcreen).hide();
-		
+
 		var callback = function(){
 			console.log('Navigate callback: ' + nav_to);
-			
+
 			if (nav_to == 'archive')
 				ShellArchive.restart();
 			else if (nav_to == 'objective')
@@ -128,7 +128,7 @@ function GameShell()
 				$('#launch').removeClass('imp fg').addClass(params);
 				self._runVideo('brief_'+params, function(){
 					self.getLevelInfo(function(level){
-						var info = self.fontGame.prepareMultilineText(level.objective, (params == 'fg') ? 259 : 231), 
+						var info = self.fontGame.prepareMultilineText(level.objective, (params == 'fg') ? 259 : 231),
 							lines = self.getLinesCount(info);
 						$('#launch_text').attr({height: lines*14});
 						self.fontGame._bufferDraw($('#launch_text'), info);
@@ -142,18 +142,18 @@ function GameShell()
 							slider_bottom: (params == 'fg') ? 328 : 413
 						});
 					}, params);
-					
+
 					$('#' + nav_to).show();
 				});
 			}
-			
+
 			if (params === undefined)
 				$('#' + nav_to).show();
-			
+
 			self.prev_screen = self.curr_srcreen;
 			self.curr_srcreen = nav_to;
 		};
-		
+
 		switch (animation)
 		{
 			case 'up':
@@ -170,22 +170,22 @@ function GameShell()
 				break;
 		}
 	};
-	
+
 	this.showArchive = function()
 	{
 		$('#archive').show();
 	};
-	
+
 	this.showObjective = function()
 	{
 		$('#objective').show();
 	};
-	
+
 	this.getLevelInfo = function(callback, side)
 	{
 		var current_side = side || 'fg';
 		current_side += this.current_level;
-		
+
 		if (!self.levels[current_side])
 			self.resources.loadScript('./js/levels/'+current_side+'/objective.js', function(){
 				callback(self.levels[current_side]);
@@ -193,7 +193,7 @@ function GameShell()
 		else
 			callback(self.levels[current_side]);
 	};
-	
+
 	this.videoIntro = function()
 	{
 		self._runVideo('cube_in', function(){
@@ -212,7 +212,7 @@ function GameShell()
 			video.play();
 		});
 	};
-	
+
 	this._moveCube = function(animation_name, callback)
 	{
 		self._runVideo(animation_name, function(){
@@ -222,7 +222,7 @@ function GameShell()
 			});
 		});
 	};
-	
+
 	this._runVideo = function(video_name, callback)
 	{
 		if (!GAMECONFIG.playVideo)
@@ -231,34 +231,34 @@ function GameShell()
 				callback();
 			return;
 		}
-			
+
 		var video = self.resources.get(video_name), $cont = $('#video_container');
-		
+
 		video.addEventListener('ended', function(){
 			this.removeEventListener('ended', arguments.callee, false);
 			$('#video_container').html('');
 			if (callback)
 				callback();
 		});
-		
+
 		$cont.append(video);
 		$cont.show();
 		video.play();
 	};
-	
+
 	this.makeLinkImage = function(text)
 	{
 		var size = self.fontNormal.getSize(text),
 			tmp_canvas = $('<canvas width="' + size + '" height="54"></canvas>'),
 			ctx = tmp_canvas.get(0).getContext('2d');
-		
+
 		self.fontNormal.drawOnCanvas(text, ctx, 0, 0);
 		self.fontNormal.drawOnCanvas(text, ctx, 0, 18, 'red');
 		self.fontNormal.drawOnCanvas(text, ctx, 0, 36, 'green');
-		
+
 		return 'url("' + tmp_canvas.get(0).toDataURL() + '")';
 	};
-	
+
 	this.getLinesCount = function(text)
 	{
 		var i, lines = 1;
@@ -267,7 +267,7 @@ function GameShell()
 				lines++;
 		return lines;
 	};
-	
+
 	this.startLevel = function()
 	{
 		var side = $('#launch').attr("class");
@@ -282,7 +282,7 @@ $(function(){
 		game = new GameShell();
 		game.init();
 	};
-	
+
 	$('.moovable').click(function(){
 		var $this = $(this);
 		game.navigate($this.attr('data-to'), $this.attr('data-way'), $this.attr('data-param'));

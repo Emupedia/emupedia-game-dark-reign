@@ -48,17 +48,24 @@ function FontDraw(font_name, size)
 				break;
 		}
 
-		ctx.drawImage(
-			_cache_table[key].canvas, 0, 0, _cache_table[key].width, size,
-			x - 0.5, y - 0.5, _cache_table[key].width, size
-		);
+		try {
+			ctx.drawImage(_cache_table[key].canvas, 0, 0, _cache_table[key].width, size, x - 0.5, y - 0.5, _cache_table[key].width, size);
+		} catch (e) {
+
+		}
 	};
 
 	this.getSize = function(text)
 	{
 		var summ = 0;
-		for (var i = 0; i < text.length; ++i)
-			summ += _table[text.charCodeAt(i)][1];
+
+		for (var i = 0; i < text.length; ++i) {
+			if (typeof _table[text.charCodeAt(i)] !== 'undefined') {
+				if (typeof _table[text.charCodeAt(i)][1] !== 'undefined') {
+					summ += _table[text.charCodeAt(i)][1];
+				}
+			}
+		}
 
 		return summ;
 	};
@@ -115,24 +122,27 @@ function FontDraw(font_name, size)
 
 	this._bufferDraw = function(canvas, text, color)
 	{
-		var ctx = canvas.get(0).getContext('2d'), current_position = 0, ascii, letter, line = 0,
-			color_offset = this._getColorOffset(color), font = game.resources.get(font_name);
+		var ctx = canvas.get(0).getContext('2d'), current_position = 0, ascii, letter, line = 0, color_offset = this._getColorOffset(color), font = game.resources.get(font_name);
 
 		for (var i = 0; i < text.length; ++i)
 		{
 			ascii = text.charCodeAt(i);
-			if (ascii == 10)
+
+			if (ascii === 10)
 			{
 				line += size;
 				current_position = 0;
 				continue;
 			}
+
 			letter = _table[ascii];
-			ctx.drawImage(
-				font, letter[0], color_offset, letter[1], size,
-				current_position, line, letter[1], size
-				);
-			current_position += letter[1];
+
+			if (typeof letter !== 'undefined') {
+				if (typeof letter[0] !== 'undefined' && typeof letter[1] !== 'undefined') {
+					ctx.drawImage(font, letter[0], color_offset, letter[1], size,current_position, line, letter[1], size);
+					current_position += letter[1];
+				}
+			}
 		}
 
 		return current_position;
